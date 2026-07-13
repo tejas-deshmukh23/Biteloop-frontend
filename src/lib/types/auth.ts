@@ -32,3 +32,16 @@ export interface AuthUser {
   email: string;
   role: UserRole;
 }
+
+//what the frontend sends to /api/users/resgister
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  address?: string;
+  role: "CUSTOMER" | "PROVIDER";
+}
+
+//note:- role is deliberately typed as "CUSTOMER" | "PRIVIDER" here, not the full userRole (which also includes "ADMIN") - nobody should be able to self-register as an admin from this form. Restricting it as the type level means TypeScript itself would flag it if the register page ever accidentally tried to send "ADMIN".
+

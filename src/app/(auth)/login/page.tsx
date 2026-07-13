@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useAuthStore } from "@/src/lib/store/authStore";
-import type { AuthUser } from "@/src/lib/types/auth";
+import { useAuthStore } from "@/lib/store/authStore";
+import type { AuthUser } from "@/lib/types/auth";
 
 // Mirrors backend LoginRequest validation exactly:
 // @NotBlank + @Email on email, @NotBlank on password.
