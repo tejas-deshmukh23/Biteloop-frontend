@@ -1,39 +1,37 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuthStore } from "@/lib/store/authStore";
 import type { AuthUser } from "@/lib/types/auth";
 
-// Mirrors backend LoginRequest validation exactly:
-// @NotBlank + @Email on email, @NotBlank on password.
-// We don't add extra client-side rules (like min length)
-// that the backend doesn't enforce.
 const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Invalid email format"),
+  email: z.string().min(1, "Email is required").email("Invalid email format"),
   password: z.string().min(1, "Password is required"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+function isValidRedirectForRole(path: string, role: string): boolean {
+  if (role === "PROVIDER") return path.startsWith("/provider");
+  if (role === "CUSTOMER")
+    return (
+      path.startsWith("/dashboard") ||
+      path.startsWith("/orders") ||
+      path.startsWith("/cart")
+    );
+  return false;
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const setUser = useAuthStore((state) => state.setUser);
 
-
-  const [serverError, setServerError] = useState<string | null>(null); 
-  // TypeScript tells React that serverError can only be a string or null.
-// So setServerError("Login failed") ✅
-//    setServerError(null) ✅
-//    setServerError(25) ❌ (TypeScript error because 25 is a number)
-
-
+  const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -65,11 +63,14 @@ export default function LoginPage() {
       const user: AuthUser = payload.data;
       setUser(user);
 
-      // Redirect based on role
-      if (user.role === "PROVIDER") {
+      const redirectTo = searchParams.get("redirectTo");
+
+      if (redirectTo && isValidRedirectForRole(redirectTo, user.role)) {
+        router.push(redirectTo);
+      } else if (user.role === "PROVIDER") {
         router.push("/provider/dashboard");
       } else if (user.role === "ADMIN") {
-        router.push("/"); // no admin dashboard yet
+        router.push("/");
       } else {
         router.push("/dashboard");
       }
@@ -119,9 +120,7 @@ export default function LoginPage() {
             )}
           </div>
 
-          {serverError && (
-            <p className="text-red-600 text-sm">{serverError}</p>
-          )}
+          {serverError && <p className="text-red-600 text-sm">{serverError}</p>}
 
           <button
             type="submit"
@@ -133,5 +132,13 @@ export default function LoginPage() {
         </form>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <LoginForm />
+    </Suspense>
   );
 }

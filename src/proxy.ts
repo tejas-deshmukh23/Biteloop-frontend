@@ -5,7 +5,7 @@ const JWT_COOKIE_NAME = process.env.JWT_COOKIE_NAME || "biteloop_token";
 const JWT_SECRET = process.env.JWT_SECRET || "";
 
 // Routes that require a logged-in CUSTOMER
-const CUSTOMER_PREFIXES = ["/dashboard", "/orders"];
+const CUSTOMER_PREFIXES = ["/dashboard", "/orders", "/cart"];
 // Routes that require a logged-in PROVIDER
 const PROVIDER_PREFIXES = ["/provider"];
 
@@ -67,5 +67,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/orders/:path*", "/provider/:path*"],
+  matcher: ["/dashboard/:path*", "/orders/:path*", "/provider/:path*", "/cart/:path*"],
 };
