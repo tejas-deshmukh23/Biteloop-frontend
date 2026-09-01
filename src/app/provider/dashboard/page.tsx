@@ -82,7 +82,7 @@ export default function ProviderDashboard() {
 
   // useMutation is for actions triggered by a user click, not run
   // automatically like useQuery. mutate() does nothing until called.
-  const statusMutation = useMutation({
+  const statusMutation = useMutation<Order, Error, { orderId: string; status: OrderStatus }>({
     mutationFn: ({ orderId, status }: { orderId: string; status: OrderStatus }) =>
       updateOrderStatus(orderId, status),
     onSuccess: () => {
@@ -112,8 +112,18 @@ export default function ProviderDashboard() {
         <ul className="space-y-4">
           {orders.map((order) => {
             const nextAction = getNextAction(order.status);
+
+            // Kept separate from isPending on purpose — deriving both from
+            // the same combined boolean caused TypeScript's control-flow
+            // analysis to treat "isPending AND isError" as impossible on
+            // the UseMutationResult discriminated union, collapsing
+            // statusMutation to `never` wherever both were checked together.
             const isThisOrderMutating =
               statusMutation.isPending &&
+              statusMutation.variables?.orderId === order.id;
+
+            const isThisOrderErrored =
+              statusMutation.isError &&
               statusMutation.variables?.orderId === order.id;
 
             return (
@@ -147,7 +157,7 @@ export default function ProviderDashboard() {
 
                 <p className="mt-1 font-medium">Total: ₹{order.totalAmount}</p>
 
-                {statusMutation.isError && isThisOrderMutating && (
+                {isThisOrderErrored && (
                   <p className="text-red-600 text-sm mt-2">
                     {statusMutation.error instanceof Error
                       ? statusMutation.error.message
