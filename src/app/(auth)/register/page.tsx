@@ -70,7 +70,8 @@ export default function RegisterPage() {
             setUser(user);
 
             if (user.role === "PROVIDER") {
-                router.push("/provider/dashboard");
+                // router.push("/provider/dashboard");
+                router.push("/provider/register");
             } else {
                 router.push("/dashboard");
             }
