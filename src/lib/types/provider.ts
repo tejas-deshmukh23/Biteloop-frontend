@@ -14,3 +14,13 @@ export interface Provider {
   isActive: boolean;
   createdAt: string;
 }
+
+export interface CreateProviderRequest {
+  businessName: string;
+  description?: string;
+  address: string;
+  latitude?: number;
+  longitude?: number;
+  deliveryRadiusKm?: number;
+  deliveryAvailable: boolean;
+}
