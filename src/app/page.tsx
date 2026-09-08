@@ -1515,7 +1515,7 @@ export default function HomePage() {
             </a>
           </nav>
 
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm hidden sm:inline hover:text-[#B23A2E] transition-colors">
               Log in
             </Link>
@@ -1525,7 +1525,15 @@ export default function HomePage() {
             >
               Get started
             </Link>
-          </div>
+          </div> */}
+          <div className="flex items-center gap-3 sm:gap-4">
+  <Link href="/login" className="text-sm hover:text-[#B23A2E] transition-colors">
+    Log in
+  </Link>
+  <Link href="/register" className="btn-3d btn-3d-primary bg-[#B23A2E] text-white text-sm font-medium px-4 py-2 rounded-full transition-transform">
+    Get started
+  </Link>
+</div>
         </header>
       </div>
 
