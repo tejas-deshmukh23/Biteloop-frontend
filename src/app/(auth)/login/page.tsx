@@ -29,8 +29,20 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+// function isValidRedirectForRole(path: string, role: string): boolean {
+//   if (role === "PROVIDER") return path.startsWith("/provider");
+//   if (role === "CUSTOMER")
+//     return (
+//       path.startsWith("/dashboard") ||
+//       path.startsWith("/orders") ||
+//       path.startsWith("/cart")
+//     );
+//   return false;
+// }
+
 function isValidRedirectForRole(path: string, role: string): boolean {
   if (role === "PROVIDER") return path.startsWith("/provider");
+  if (role === "ADMIN") return path.startsWith("/admin");
   if (role === "CUSTOMER")
     return (
       path.startsWith("/dashboard") ||
@@ -84,7 +96,7 @@ function LoginForm() {
       } else if (user.role === "PROVIDER") {
         router.push("/provider/dashboard");
       } else if (user.role === "ADMIN") {
-        router.push("/");
+        router.push("/admin/dashboard");
       } else {
         router.push("/dashboard");
       }
