@@ -804,14 +804,33 @@ export default function HomePage() {
 
       {/* Footer */}
 
-      <footer className="max-w-6xl mx-auto px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#2B2013]/60">
-        <span
-          className={`${fraunces.className} text-base font-semibold text-[#2B2013]`}
-        >
-          Biteloop
-        </span>
+            {/* Footer */}
 
-        <span>© 2026 Biteloop</span>
+      <footer className="max-w-6xl mx-auto px-6 py-10">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+          <span
+            className={`${fraunces.className} text-base font-semibold text-[#2B2013]`}
+          >
+            Biteloop
+          </span>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-[#2B2013]/60">
+            <Link href="/terms" className="hover:text-[#B23A2E] transition-colors">
+              Terms
+            </Link>
+            <Link href="/privacy" className="hover:text-[#B23A2E] transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/refund-policy" className="hover:text-[#B23A2E] transition-colors">
+              Refund Policy
+            </Link>
+            <Link href="/contact" className="hover:text-[#B23A2E] transition-colors">
+              Contact Us
+            </Link>
+          </div>
+
+          <span className="text-sm text-[#2B2013]/60">© 2026 Biteloop</span>
+        </div>
       </footer>
     </div>
   );
