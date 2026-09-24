@@ -46,3 +46,12 @@ export interface PlaceOrderRequest {
   notes?: string;
   items: OrderItemRequest[];
 }
+
+export interface PlaceOrderRequest {
+  providerId: string;
+  deliveryAddress: string;
+  notes?: string;
+  deliveryLatitude?: number;
+  deliveryLongitude?: number;
+  items: OrderItemRequest[];
+}

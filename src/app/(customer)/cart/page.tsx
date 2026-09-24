@@ -8,6 +8,7 @@ import { Fraunces, Work_Sans } from "next/font/google";
 import { useCartStore } from "@/lib/store/cartStore";
 import type { ApiResponse } from "@/lib/types/auth";
 import type { Order, PlaceOrderRequest } from "@/lib/types/order";
+import { useLocationStore } from "@/lib/store/locationStore";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -39,11 +40,49 @@ async function placeOrder(request: PlaceOrderRequest): Promise<Order> {
 
 function EmptyCartIllustration() {
   return (
-    <svg viewBox="0 0 160 140" className="w-32 h-auto mx-auto mb-5" aria-hidden="true">
-      <rect x="30" y="55" width="100" height="42" rx="10" fill="none" stroke="#2B2013" strokeOpacity="0.2" strokeWidth="4" />
-      <rect x="30" y="55" width="100" height="12" rx="6" fill="#2B2013" fillOpacity="0.1" />
-      <path d="M55 55 Q80 30 105 55" fill="none" stroke="#2B2013" strokeOpacity="0.2" strokeWidth="4" strokeLinecap="round" />
-      <circle cx="80" cy="76" r="8" fill="none" stroke="#D89B2C" strokeOpacity="0.4" strokeWidth="3" strokeDasharray="4 5" />
+    <svg
+      viewBox="0 0 160 140"
+      className="w-32 h-auto mx-auto mb-5"
+      aria-hidden="true"
+    >
+      <rect
+        x="30"
+        y="55"
+        width="100"
+        height="42"
+        rx="10"
+        fill="none"
+        stroke="#2B2013"
+        strokeOpacity="0.2"
+        strokeWidth="4"
+      />
+      <rect
+        x="30"
+        y="55"
+        width="100"
+        height="12"
+        rx="6"
+        fill="#2B2013"
+        fillOpacity="0.1"
+      />
+      <path
+        d="M55 55 Q80 30 105 55"
+        fill="none"
+        stroke="#2B2013"
+        strokeOpacity="0.2"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+      <circle
+        cx="80"
+        cy="76"
+        r="8"
+        fill="none"
+        stroke="#D89B2C"
+        strokeOpacity="0.4"
+        strokeWidth="3"
+        strokeDasharray="4 5"
+      />
     </svg>
   );
 }
@@ -62,6 +101,8 @@ export default function CartPage() {
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+
+  const { latitude, longitude } = useLocationStore();
 
   const mutation = useMutation({
     mutationFn: placeOrder,
@@ -84,10 +125,23 @@ export default function CartPage() {
       return;
     }
 
+    // mutation.mutate({
+    //   providerId,
+    //   deliveryAddress: deliveryAddress.trim(),
+    //   notes: notes.trim() || undefined,
+    //   items: items.map((item) => ({
+    //     menuItemId: item.menuItemId,
+    //     itemName: item.itemName,
+    //     itemPrice: item.itemPrice,
+    //     quantity: item.quantity,
+    //   })),
+    // });
     mutation.mutate({
       providerId,
       deliveryAddress: deliveryAddress.trim(),
       notes: notes.trim() || undefined,
+      deliveryLatitude: latitude ?? undefined,
+      deliveryLongitude: longitude ?? undefined,
       items: items.map((item) => ({
         menuItemId: item.menuItemId,
         itemName: item.itemName,
@@ -99,7 +153,9 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className={`${workSans.className} max-w-2xl mx-auto px-6 py-16 text-center`}>
+      <div
+        className={`${workSans.className} max-w-2xl mx-auto px-6 py-16 text-center`}
+      >
         <EmptyCartIllustration />
         <h1 className={`${fraunces.className} text-2xl font-semibold mb-2`}>
           Your cart is empty
@@ -130,13 +186,25 @@ export default function CartPage() {
         }
 
         @keyframes rowEnter {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         @keyframes checkoutBarEnter {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(16px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         .btn-3d {
@@ -159,7 +227,9 @@ export default function CartPage() {
         }
       `}</style>
 
-      <h1 className={`${fraunces.className} text-3xl font-semibold mb-1`}>Your Cart</h1>
+      <h1 className={`${fraunces.className} text-3xl font-semibold mb-1`}>
+        Your Cart
+      </h1>
       {providerName && (
         <p className="text-[#2B2013]/55 mb-6">Ordering from {providerName}</p>
       )}
@@ -173,22 +243,31 @@ export default function CartPage() {
           >
             <div className="min-w-0">
               <h3 className="font-semibold truncate">{item.itemName}</h3>
-              <p className="text-sm text-[#2B2013]/50">₹{item.itemPrice} each</p>
+              <p className="text-sm text-[#2B2013]/50">
+                ₹{item.itemPrice} each
+              </p>
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
               <div className="flex items-center gap-1 bg-[#2B2013]/5 rounded-full px-1 py-1">
                 <button
                   onClick={() =>
-                    updateQuantity(item.menuItemId, Math.max(1, item.quantity - 1))
+                    updateQuantity(
+                      item.menuItemId,
+                      Math.max(1, item.quantity - 1),
+                    )
                   }
                   className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-sm font-medium hover:bg-[#2B2013]/5 transition-colors"
                 >
                   −
                 </button>
-                <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
+                <span className="w-6 text-center text-sm font-medium">
+                  {item.quantity}
+                </span>
                 <button
-                  onClick={() => updateQuantity(item.menuItemId, item.quantity + 1)}
+                  onClick={() =>
+                    updateQuantity(item.menuItemId, item.quantity + 1)
+                  }
                   className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-sm font-medium hover:bg-[#2B2013]/5 transition-colors"
                 >
                   +
@@ -212,7 +291,9 @@ export default function CartPage() {
 
       <div className="rounded-2xl border border-[#2B2013]/10 bg-white/70 backdrop-blur-sm p-5 space-y-4 mb-6">
         <div>
-          <label className="block text-sm font-medium mb-1">Delivery Address</label>
+          <label className="block text-sm font-medium mb-1">
+            Delivery Address
+          </label>
           <textarea
             value={deliveryAddress}
             onChange={(e) => setDeliveryAddress(e.target.value)}
@@ -239,7 +320,9 @@ export default function CartPage() {
       {(formError || mutation.isError) && (
         <p className="text-red-600 text-sm mb-4">
           {formError ||
-            (mutation.error instanceof Error ? mutation.error.message : "Something went wrong")}
+            (mutation.error instanceof Error
+              ? mutation.error.message
+              : "Something went wrong")}
         </p>
       )}
 

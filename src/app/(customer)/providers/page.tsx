@@ -1,11 +1,22 @@
+
 // "use client";
 
 // import { useState } from "react";
 // import { useQuery } from "@tanstack/react-query";
 // import Link from "next/link";
+// import dynamic from "next/dynamic";
 // import { Fraunces, Work_Sans } from "next/font/google";
 // import type { ApiResponse } from "@/lib/types/auth";
 // import type { Provider } from "@/lib/types/provider";
+
+// const ProvidersMap = dynamic(() => import("@/components/ProvidersMap"), {
+//   ssr: false,
+//   loading: () => (
+//     <div className="h-[420px] rounded-2xl bg-[#2B2013]/5 animate-pulse flex items-center justify-center text-sm text-[#2B2013]/40">
+//       Loading map...
+//     </div>
+//   ),
+// });
 
 // const fraunces = Fraunces({
 //   subsets: ["latin"],
@@ -130,16 +141,13 @@
 //     <div
 //       className="skeleton-pulse rounded-2xl border border-[#2B2013]/10 bg-white/60 p-5 h-[168px]"
 //       style={{ animationDelay: `${index * 100}ms` }}
-//     >
-//       <div className="w-11 h-11 rounded-full bg-[#2B2013]/10 mb-3" />
-//       <div className="h-4 bg-[#2B2013]/10 rounded w-2/3 mb-2" />
-//       <div className="h-3 bg-[#2B2013]/10 rounded w-full mb-1.5" />
-//       <div className="h-3 bg-[#2B2013]/10 rounded w-1/2" />
-//     </div>
+//     />
 //   );
 // }
 
 // export default function ProvidersPage() {
+//   const [view, setView] = useState<"list" | "map">("list");
+
 //   const { data: providers, isLoading, isError, error } = useQuery({
 //     queryKey: ["providers"],
 //     queryFn: fetchProviders,
@@ -149,26 +157,17 @@
 //     <div className={workSans.className}>
 //       <style jsx global>{`
 //         @media (prefers-reduced-motion: no-preference) {
-//           .card-enter {
-//             animation: cardEnter 0.55s ease-out both;
-//           }
-//           .live-ping {
-//             animation: livePing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-//           }
-//           .skeleton-pulse {
-//             animation: skeletonPulse 1.4s ease-in-out infinite;
-//           }
+//           .card-enter { animation: cardEnter 0.55s ease-out both; }
+//           .live-ping { animation: livePing 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+//           .skeleton-pulse { animation: skeletonPulse 1.4s ease-in-out infinite; }
 //         }
-
 //         @keyframes cardEnter {
 //           from { opacity: 0; transform: translateY(18px); }
 //           to { opacity: 1; transform: translateY(0); }
 //         }
-
 //         @keyframes livePing {
 //           75%, 100% { transform: scale(1.8); opacity: 0; }
 //         }
-
 //         @keyframes skeletonPulse {
 //           0%, 100% { opacity: 0.6; }
 //           50% { opacity: 1; }
@@ -176,12 +175,35 @@
 //       `}</style>
 
 //       <main className="max-w-6xl mx-auto px-6 py-10">
-//         <h1 className={`${fraunces.className} text-3xl font-semibold mb-1`}>
-//           Browse kitchens near you
-//         </h1>
-//         <p className="text-[#2B2013]/60 mb-8">
-//           Real home-style meals, made fresh by local kitchens.
-//         </p>
+//         <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
+//           <div>
+//             <h1 className={`${fraunces.className} text-3xl font-semibold mb-1`}>
+//               Browse kitchens near you
+//             </h1>
+//             <p className="text-[#2B2013]/60">
+//               Real home-style meals, made fresh by local kitchens.
+//             </p>
+//           </div>
+
+//           <div className="flex gap-1 bg-white/70 border border-[#2B2013]/10 rounded-full p-1">
+//             <button
+//               onClick={() => setView("list")}
+//               className={`text-sm font-medium px-4 py-1.5 rounded-full transition-colors ${
+//                 view === "list" ? "bg-[#B23A2E] text-white" : "text-[#2B2013]/60"
+//               }`}
+//             >
+//               List
+//             </button>
+//             <button
+//               onClick={() => setView("map")}
+//               className={`text-sm font-medium px-4 py-1.5 rounded-full transition-colors ${
+//                 view === "map" ? "bg-[#B23A2E] text-white" : "text-[#2B2013]/60"
+//               }`}
+//             >
+//               Map
+//             </button>
+//           </div>
+//         </div>
 
 //         {isError && (
 //           <div className="text-red-600">
@@ -201,12 +223,16 @@
 //           <div className="text-[#2B2013]/60">No providers available right now.</div>
 //         )}
 
-//         {!isLoading && !isError && providers && providers.length > 0 && (
+//         {!isLoading && !isError && providers && providers.length > 0 && view === "list" && (
 //           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 //             {providers.map((provider, index) => (
 //               <ProviderCard key={provider.id} provider={provider} index={index} />
 //             ))}
 //           </div>
+//         )}
+
+//         {!isLoading && !isError && providers && providers.length > 0 && view === "map" && (
+//           <ProvidersMap providers={providers} />
 //         )}
 //       </main>
 //     </div>
@@ -222,6 +248,9 @@ import dynamic from "next/dynamic";
 import { Fraunces, Work_Sans } from "next/font/google";
 import type { ApiResponse } from "@/lib/types/auth";
 import type { Provider } from "@/lib/types/provider";
+import { useLocationStore } from "@/lib/store/locationStore";
+import { isWithinDeliveryRange } from "@/lib/geo";
+import LocationPrompt from "@/components/LocationPrompt";
 
 const ProvidersMap = dynamic(() => import("@/components/ProvidersMap"), {
   ssr: false,
@@ -261,12 +290,23 @@ async function fetchProviders(): Promise<Provider[]> {
   return payload.data ?? [];
 }
 
-function ProviderCard({ provider, index }: { provider: Provider; index: number }) {
+function ProviderCard({
+  provider,
+  index,
+  inRange,
+  knowsLocation,
+}: {
+  provider: Provider;
+  index: number;
+  inRange: boolean;
+  knowsLocation: boolean;
+}) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [spot, setSpot] = useState({ x: 50, y: 50 });
   const [hovering, setHovering] = useState(false);
 
   const accent = ACCENTS[index % ACCENTS.length];
+  const blocked = knowsLocation && !inRange;
 
   const handleMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -281,6 +321,69 @@ function ProviderCard({ provider, index }: { provider: Provider; index: number }
     setHovering(false);
     setTilt({ x: 0, y: 0 });
   };
+
+  const cardBody = (
+    <>
+      <div
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300"
+        style={{
+          opacity: hovering ? 1 : 0,
+          background: `radial-gradient(circle at ${spot.x}% ${spot.y}%, ${accent.tint}, transparent 60%)`,
+        }}
+      />
+
+      <div className="relative">
+        <div className="flex items-start justify-between mb-3">
+          <div
+            className={`${fraunces.className} w-11 h-11 rounded-full flex items-center justify-center text-white text-lg font-semibold shrink-0`}
+            style={{ backgroundColor: accent.hex }}
+          >
+            {provider.businessName.charAt(0).toUpperCase()}
+          </div>
+
+          {blocked ? (
+            <span className="text-xs bg-[#B23A2E]/10 text-[#B23A2E] px-2 py-1 rounded-full font-medium">
+              Out of delivery range
+            </span>
+          ) : provider.deliveryAvailable ? (
+            <span className="flex items-center gap-1.5 text-xs text-[#55713C] font-medium">
+              <span className="relative flex h-2 w-2">
+                <span className="live-ping absolute inline-flex h-full w-full rounded-full bg-[#55713C] opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#55713C]" />
+              </span>
+              Delivers to you
+            </span>
+          ) : (
+            <span className="text-xs bg-[#2B2013]/5 text-[#2B2013]/60 px-2 py-1 rounded-full">
+              Pickup only
+            </span>
+          )}
+        </div>
+
+        <h2 className={`${fraunces.className} text-lg font-semibold mb-1`}>
+          {provider.businessName}
+        </h2>
+
+        {provider.description && (
+          <p className="text-sm text-[#2B2013]/65 line-clamp-2 mb-2 leading-relaxed">
+            {provider.description}
+          </p>
+        )}
+
+        <p className="text-sm text-[#2B2013]/50">{provider.address}</p>
+      </div>
+    </>
+  );
+
+  if (blocked) {
+    return (
+      <div className="card-enter" style={{ animationDelay: `${Math.min(index * 70, 420)}ms` }}>
+        <div className="relative block rounded-2xl border border-[#2B2013]/10 bg-white/50 p-5 overflow-hidden opacity-60 cursor-not-allowed">
+          {cardBody}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -301,50 +404,7 @@ function ProviderCard({ provider, index }: { provider: Provider; index: number }
         }}
         className="relative block rounded-2xl border border-[#2B2013]/10 bg-white/80 backdrop-blur-sm p-5 overflow-hidden"
       >
-        <div
-          className="pointer-events-none absolute inset-0 transition-opacity duration-300"
-          style={{
-            opacity: hovering ? 1 : 0,
-            background: `radial-gradient(circle at ${spot.x}% ${spot.y}%, ${accent.tint}, transparent 60%)`,
-          }}
-        />
-
-        <div className="relative">
-          <div className="flex items-start justify-between mb-3">
-            <div
-              className={`${fraunces.className} w-11 h-11 rounded-full flex items-center justify-center text-white text-lg font-semibold shrink-0`}
-              style={{ backgroundColor: accent.hex }}
-            >
-              {provider.businessName.charAt(0).toUpperCase()}
-            </div>
-
-            {provider.deliveryAvailable ? (
-              <span className="flex items-center gap-1.5 text-xs text-[#55713C] font-medium">
-                <span className="relative flex h-2 w-2">
-                  <span className="live-ping absolute inline-flex h-full w-full rounded-full bg-[#55713C] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#55713C]" />
-                </span>
-                Delivers to you
-              </span>
-            ) : (
-              <span className="text-xs bg-[#2B2013]/5 text-[#2B2013]/60 px-2 py-1 rounded-full">
-                Pickup only
-              </span>
-            )}
-          </div>
-
-          <h2 className={`${fraunces.className} text-lg font-semibold mb-1`}>
-            {provider.businessName}
-          </h2>
-
-          {provider.description && (
-            <p className="text-sm text-[#2B2013]/65 line-clamp-2 mb-2 leading-relaxed">
-              {provider.description}
-            </p>
-          )}
-
-          <p className="text-sm text-[#2B2013]/50">{provider.address}</p>
-        </div>
+        {cardBody}
       </Link>
     </div>
   );
@@ -361,6 +421,8 @@ function SkeletonCard({ index }: { index: number }) {
 
 export default function ProvidersPage() {
   const [view, setView] = useState<"list" | "map">("list");
+  const { latitude, longitude } = useLocationStore();
+  const knowsLocation = latitude != null && longitude != null;
 
   const { data: providers, isLoading, isError, error } = useQuery({
     queryKey: ["providers"],
@@ -389,7 +451,7 @@ export default function ProvidersPage() {
       `}</style>
 
       <main className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
           <div>
             <h1 className={`${fraunces.className} text-3xl font-semibold mb-1`}>
               Browse kitchens near you
@@ -419,6 +481,8 @@ export default function ProvidersPage() {
           </div>
         </div>
 
+        <LocationPrompt />
+
         {isError && (
           <div className="text-red-600">
             {error instanceof Error ? error.message : "Something went wrong"}
@@ -439,9 +503,18 @@ export default function ProvidersPage() {
 
         {!isLoading && !isError && providers && providers.length > 0 && view === "list" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {providers.map((provider, index) => (
-              <ProviderCard key={provider.id} provider={provider} index={index} />
-            ))}
+            {providers.map((provider, index) => {
+              const inRange = isWithinDeliveryRange(latitude, longitude, provider);
+              return (
+                <ProviderCard
+                  key={provider.id}
+                  provider={provider}
+                  index={index}
+                  inRange={inRange}
+                  knowsLocation={knowsLocation}
+                />
+              );
+            })}
           </div>
         )}
 
